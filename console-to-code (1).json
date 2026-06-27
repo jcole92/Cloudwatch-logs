@@ -1,0 +1,74 @@
+
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "CloudFormation template for Lambda function and CloudWatch Logs resources",
+  "Resources": {
+    "DemoLogsLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "Demo-logs",
+        "LogGroupClass": "STANDARD",
+        "RetentionInDays": 7
+      }
+    },
+    "HelloWorldLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "FunctionName": "HelloWorld",
+        "Runtime": "python3.12",
+        "Role": "arn:aws:iam::044010357896:role/service-role/HelloWorld-role-4adj64ap",
+        "Handler": "lambda_function.lambda_handler",
+        "Code": {
+          "ZipFile": "def lambda_handler(event, context):\n    print('Loading function')\n    print(f\"value1 = {event.get('key1', '')}\")\n    print(f\"value2 = {event.get('key2', '')}\")\n    print(f\"value3 = {event.get('key3', '')}\")\n    return {\n        'statusCode': 200,\n        'body': 'Hello from Lambda!'\n    }\n"
+        },
+        "Description": "A starter AWS Lambda function.",
+        "Timeout": "3",
+        "MemorySize": "128",
+        "Architectures": [
+          "x86_64"
+        ],
+        "Environment": {
+          "Variables": {}
+        },
+        "Tags": [
+          {
+            "Key": "lambda-console:blueprint",
+            "Value": "hello-world-python"
+          }
+        ]
+      }
+    },
+    "HelloWorldLambdaLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/HelloWorld",
+        "RetentionInDays": 7
+      },
+      "DependsOn": "HelloWorldLambdaFunction"
+    },
+    "DemoMetricFilter": {
+      "Type": "AWS::Logs::MetricFilter",
+      "Properties": {
+        "FilterName": "DemoFilter",
+        "FilterPattern": "",
+        "LogGroupName": "/aws/lambda/HelloWorld",
+        "MetricTransformations": [
+          {
+            "MetricName": "DemoCloudwatchLog",
+            "MetricNamespace": "DemoNameSpace",
+            "MetricValue": "1"
+          }
+        ]
+      },
+      "DependsOn": "HelloWorldLambdaLogGroup"
+    }
+  },
+  "Outputs": {
+    "DemoLogsLogGroupName": {
+      "Description": "Name of the Demo logs log group",
+      "Value": {
+        "Ref": "DemoLogsLogGroup"
+      }
+    },
+    "HelloWorldLambdaFunctionArn": {
+      "Description": "ARN of the HelloWorld Lambda
